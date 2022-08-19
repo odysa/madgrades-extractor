@@ -27,8 +27,11 @@ public class Scrapers {
             String name = children.get(0).text();
             String abbreviation = children.get(1).text();
             String code = children.get(2).text();
-
-            subjects.add(new Subject(name, abbreviation, code));
+            if(code.matches("-?\\d+")){
+                subjects.add(new Subject(name, abbreviation, code));
+            }else {
+                subjects.add(new Subject(code, abbreviation, name));
+            }
         }
 
         return subjects;
