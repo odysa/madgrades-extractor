@@ -13,11 +13,19 @@ public class Course {
   private final int courseNumber;
   private String name;
   private final Set<CourseOffering> courseOfferings = new HashSet<>();
+  private Set<Breadth> breadths;
+  private Set<GE> ges;
+  private Level level;
 
   public Course(int courseNumber) {
     this.courseNumber = courseNumber;
   }
-
+  public Course(int courseNumber, Set<Breadth> breadths, Set<GE> ges, Level level) {
+    this.courseNumber = courseNumber;
+    this.breadths = breadths;
+    this.ges = ges;
+    this.level = level;
+  }
   public void setName(String name) {
     this.name = name;
   }
@@ -32,6 +40,14 @@ public class Course {
     return courseOfferings.stream()
         .flatMap(o -> o.getSubjectCodes().stream())
         .collect(Collectors.toSet());
+  }
+
+  public Set<Breadth> getBreadths(){
+    return this.breadths;
+  }
+
+  public Set<GE> getGEs(){
+    return this.ges;
   }
 
   public int getCourseNumber() {
@@ -49,15 +65,7 @@ public class Course {
    * @return the unique id.
    */
   public UUID generateUuid() {
-    // get first course offering
-    CourseOffering firstOffering = courseOfferings.stream()
-        .min(Comparator.comparingInt(CourseOffering::getTermCode))
-        .orElse(null);
-
-    if (firstOffering == null)
-      throw new IllegalStateException();
-
-    int hash = Objects.hash(courseNumber, firstOffering.generateUuid());
+    int hash = Objects.hash(this.name, this.courseNumber);
     return UUID.nameUUIDFromBytes((hash + "").getBytes());
   }
 
