@@ -2,10 +2,12 @@ package com.keenant.madgrades.tools;
 
 import com.keenant.madgrades.utils.Exporter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class Exporters {
@@ -101,4 +103,12 @@ public class Exporters {
       writer.close();
     }
   };
+  public static void exportJson(File dir ,Map<UUID,String> jsons) throws FileNotFoundException {
+    File outFile = new File(dir, "courses.json");
+    PrintWriter writer = new PrintWriter(outFile);
+    for (var json :jsons.values()){
+      writer.write(json);
+      writer.println();
+    }
+  }
 }

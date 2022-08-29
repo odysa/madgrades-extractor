@@ -1,5 +1,6 @@
 package com.keenant.madgrades.data;
 
+import com.keenant.madgrades.utils.GradeType;
 import com.keenant.madgrades.utils.SectionType;
 import java.util.Map;
 import java.util.Objects;
@@ -15,7 +16,7 @@ public class Section {
   private final Schedule schedule;
   private final Room room;
   private final Map<Integer, String> instructors;
-
+  private  Map<GradeType, Integer> grades;
   public Section(int termCode, int courseNumber, SectionType sectionType,
       int sectionNumber, Schedule schedule, Room room, Map<Integer, String> instructors) {
     this.termCode = termCode;
@@ -90,5 +91,13 @@ public class Section {
 
   public Map<Integer, String> getInstructors() {
     return instructors;
+  }
+
+  public void setGrades(Map<GradeType, Integer> grades) {
+    this.grades = grades;
+  }
+
+  public Map<GradeType, Integer> getGrades() {
+    return grades;
   }
 }

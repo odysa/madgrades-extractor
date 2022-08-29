@@ -130,10 +130,12 @@ public class CommandLineApp {
       extract(reports, termCode, dirPath, gradePath);
     }
 
-    Multimap<String, Map<String, Object>> tables = reports.generateTables(subjects);
+//    Multimap<String, Map<String, Object>> tables = reports.generateTables(subjects);
 
     System.out.println("Exporting to '" + outDirectory.getAbsolutePath() + "'");
-    args.format.getExporter().export(outDirectory, tables, true);
+//    args.format.getExporter().export(outDirectory, tables, true);
+    var jsons = reports.generateJsons(subjects);
+    Exporters.exportJson(outDirectory,jsons);
     System.out.println("Done.");
   }
 

@@ -23,8 +23,9 @@ public class CourseOffering {
   private final int courseNumber;
   private final Map<String, Subject> subjects;
   private final Set<Section> sections;
-  private final AtomicReference<String> name;
-  private final Map<Integer, Map<GradeType, Integer>> grades = new HashMap<>();
+  private final transient AtomicReference<String> name;
+  private final transient Map<Integer, Map<GradeType, Integer>> grades = new HashMap<>();
+
 
   public CourseOffering(int termCode, int courseNumber, Subject subject, String name, Set<Section> sections) {
     this.termCode = termCode;
@@ -46,6 +47,7 @@ public class CourseOffering {
       name.set(other.getName().orElse(null));
     for (int sectionNumber : other.grades.keySet()) {
       addGrades(sectionNumber, other.grades.get(sectionNumber));
+      addGradeToSection(sectionNumber, other.grades.get(sectionNumber));
     }
   }
 
@@ -119,6 +121,16 @@ public class CourseOffering {
       combine.put(entry.getKey(), entry.getValue() + combine.getOrDefault(entry.getKey(), 0));
     }
     grades.put(sectionNumber, combine);
+    addGradeToSection(sectionNumber,combine);
+  }
+
+  private void addGradeToSection(int sectionNumber,Map<GradeType, Integer> grade){
+    for (var section: sections){
+      if(section.getSectionNumber() == sectionNumber){
+        section.setGrades(grade);
+        break;
+      }
+    }
   }
 
   public void addGrades(List<SectionGrades> sectionGradesList) {

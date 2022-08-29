@@ -1,7 +1,10 @@
 package com.keenant.madgrades.data;
 
 import com.google.common.collect.Sets;
-import java.util.Comparator;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.GsonBuilder;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -10,14 +13,17 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class Course {
+  private UUID uuid;
+
   private final int courseNumber;
   private String name;
-  private final Set<CourseOffering> courseOfferings = new HashSet<>();
+  private final Set<CourseOffering> teachings = new HashSet<>();
   private Set<Breadth> breadths;
   private Set<GE> ges;
   private Level level;
 
   public Course(int courseNumber) {
+    this.uuid = generateUuid();
     this.courseNumber = courseNumber;
   }
   public Course(int courseNumber, Set<Breadth> breadths, Set<GE> ges, Level level) {
@@ -31,13 +37,20 @@ public class Course {
   }
 
   public Set<Subject> subjects() {
-    return courseOfferings.stream()
-        .flatMap(o -> o.getSubjects().stream())
-        .collect(Collectors.toSet());
+    return teachings.stream()
+            .flatMap(o -> o.getSubjects().stream())
+            .collect(Collectors.toSet());
+  }
+  public UUID getUuid() {
+    return uuid;
+  }
+
+  public void setBreadths(Set<Breadth> breadths) {
+    this.breadths = breadths;
   }
 
   public Set<String> subjectCodes() {
-    return courseOfferings.stream()
+    return teachings.stream()
         .flatMap(o -> o.getSubjectCodes().stream())
         .collect(Collectors.toSet());
   }
@@ -54,8 +67,8 @@ public class Course {
     return courseNumber;
   }
 
-  public Set<CourseOffering> getCourseOfferings() {
-    return courseOfferings;
+  public Set<CourseOffering> getTeachings() {
+    return teachings;
   }
 
   /**
@@ -83,18 +96,26 @@ public class Course {
     // this is a weird situation, but it can happen
 
     // find an existing course offering with the same term code
-    CourseOffering existingOffering = courseOfferings.stream()
+    CourseOffering existingOffering = teachings.stream()
         .filter(o -> o.getTermCode() == offering.getTermCode())
         .findFirst()
         .orElse(null);
 
     // new term, we add it
     if (existingOffering == null) {
-      courseOfferings.add(offering);
+      teachings.add(offering);
     }
     else {
       existingOffering.merge(offering);
     }
+  }
+
+  public Level getLevel() {
+    return level;
+  }
+
+  public Set<GE> getGes() {
+    return ges;
   }
 
   public Optional<String> getName() {
@@ -104,7 +125,7 @@ public class Course {
     String name = null;
     int term = 0;
 
-    for (CourseOffering offering : courseOfferings) {
+    for (CourseOffering offering : teachings) {
       if (offering.getTermCode() < term)
         continue;
 
@@ -113,5 +134,23 @@ public class Course {
     }
 
     return Optional.ofNullable(name);
+  }
+
+  @Override
+  public String toString() {
+    var builder = new GsonBuilder();
+    builder.setExclusionStrategies(new ExclusionStrategy() {
+      @Override
+      public boolean shouldSkipField(FieldAttributes fieldAttributes) {
+        return false;
+      }
+
+      @Override
+      public boolean shouldSkipClass(Class<?> aClass) {
+        return false;
+      }
+    });
+    var gson = builder.create();
+    return gson.toJson(this);
   }
 }

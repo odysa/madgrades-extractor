@@ -23,6 +23,40 @@ public class TermReports {
   public Term getOrCreateTerm(int termCode) {
     return terms.computeIfAbsent(termCode, Term::new);
   }
+  private boolean setFullName(Course course){
+    // first we set the course to have a full name
+    for (Subject subject : course.subjects()) {
+      if (subject.getAbbreviation() == null) {
+        continue;
+      }
+      Map<Integer, String> fullNames = fullCourseNames.row(subject.getAbbreviation());
+
+      String fullName = fullNames.get(course.getCourseNumber());
+
+      if (fullName != null) {
+        course.setName(fullName);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public Map<UUID,String> generateJsons(Set<Subject> subjects){
+    var jsons = new HashMap<UUID, String>();
+
+    var courses = generateCourses();
+
+
+    for (var course:courses){
+
+      if (!this.setFullName(course)){
+        System.out.println("course does not have full name");
+      }
+
+        jsons.put(course.getUuid(), course.toString());
+    }
+  return jsons;
+  }
 
   public Multimap<String, Map<String, Object>> generateTables(Set<Subject> scrapedSubjects) {
     Multimap<String, Map<String, Object>> tables = ArrayListMultimap.create();
@@ -61,7 +95,7 @@ public class TermReports {
       // now we can save it to the table
       tables.put("courses", Mappers.COURSE.map(course));
 
-      for (CourseOffering offering : course.getCourseOfferings()) {
+      for (CourseOffering offering : course.getTeachings()) {
         tables.put("course_offerings", Mappers.COURSE_OFFERING.map(offering, course));
 
         for (Subject subject : offering.getSubjects()) {
@@ -153,7 +187,7 @@ public class TermReports {
 
         if (a.isCourse(b)) {
           // TODO? System.out.println("Merging: " + a + " + " + b);
-          for (CourseOffering offering : b.getCourseOfferings())
+          for (CourseOffering offering : b.getTeachings())
             a.addCourseOffering(offering);
           remove.add(b);
         }
