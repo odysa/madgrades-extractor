@@ -110,5 +110,6 @@ public class Exporters {
       writer.write(json);
       writer.println();
     }
+    writer.close();
   }
 }
