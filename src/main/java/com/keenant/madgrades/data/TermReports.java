@@ -156,16 +156,17 @@ public class TermReports {
                         roomsAdded.add(room.getUuid());
                     }
 
-                    for (Entry<Integer, String> entry : section.getInstructors().entrySet()) {
-                        Teaching teaching = new Teaching(entry.getKey(), section, offering);
+                    for (var prof : section.getInstructors()) {
+
+                        Teaching teaching = new Teaching(prof.getId(), section, offering);
                         tables.put("teachings", Mappers.TEACHING.map(teaching));
 
                         // TODO: Sometimes people change their names, this overwrites any changes :/
-                        if (instructorsAdded.contains(entry.getKey()))
+                        if (instructorsAdded.contains(prof.getId()))
                             continue;
-                        instructorsAdded.add(entry.getKey());
+                        instructorsAdded.add(prof.getId());
 
-                        Instructor instructor = new Instructor(entry.getKey(), entry.getValue());
+                        Instructor instructor = new Instructor(prof.getId(), prof.getName());
                         tables.put("instructors", Mappers.INSTRUCTOR.map(instructor));
                     }
                 }

@@ -199,7 +199,13 @@ public class CommandLineApp {
             var ethnic = Ethnic.fromJsonStr(fields.get(courseEthnicIndex).replaceAll("\"", ""));
             var requirement = fields.get(courseRequirementIndex).replace("\"", "");
 
-            var attributes = new FullAttributes().setBreadthList(breadthLists).setLevel(level).setEthnic(ethnic).setGe(ge);
+            var attributes = new FullAttributes()
+                    .setRequirement(requirement)
+                    .setBreadthList(breadthLists)
+                    .setLevel(level)
+                    .setEthnic(ethnic)
+                    .setGe(ge);
+
             reports.setCourseAttributes(name, courseNumber, attributes);
         }
     }

@@ -7,6 +7,16 @@ public class FullAttributes {
     private Level level;
     private Ethnic ethnic;
     private List<Breadth> breadthList;
+    private String requirement;
+
+    public String getRequirement() {
+        return requirement;
+    }
+
+    public FullAttributes setRequirement(String requirement) {
+        this.requirement = requirement;
+        return this;
+    }
 
     public FullAttributes setBreadthList(List<Breadth> breadthList) {
         this.breadthList = breadthList;

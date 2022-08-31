@@ -2,10 +2,8 @@ package com.keenant.madgrades.data;
 
 import com.keenant.madgrades.utils.GradeType;
 import com.keenant.madgrades.utils.SectionType;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Section {
@@ -15,10 +13,10 @@ public class Section {
   private final int sectionNumber;
   private final Schedule schedule;
   private final Room room;
-  private final Map<Integer, String> instructors;
+  private final Set<Instructor> instructors;
   private  Map<GradeType, Integer> grades;
   public Section(int termCode, int courseNumber, SectionType sectionType,
-      int sectionNumber, Schedule schedule, Room room, Map<Integer, String> instructors) {
+      int sectionNumber, Schedule schedule, Room room, Set<Instructor> instructors) {
     this.termCode = termCode;
     this.courseNumber = courseNumber;
     this.sectionType = sectionType;
@@ -38,8 +36,8 @@ public class Section {
           sectionNumber == other.sectionNumber &&
           Objects.equals(schedule, other.schedule) &&
           Objects.equals(room, other.room) &&
-          instructors.keySet().size() == other.instructors.keySet().size() &&
-          instructors.keySet().containsAll(other.instructors.keySet());
+          instructors.size() == other.instructors.size() &&
+          instructors.containsAll(other.instructors);
     }
     return false;
   }
@@ -50,7 +48,7 @@ public class Section {
   }
 
   public UUID generateUuid(CourseOffering offering) {
-    String instructorsStr = instructors.keySet().stream()
+    String instructorsStr = instructors.stream()
         .sorted()
         .map(Object::toString)
         .collect(Collectors.joining());
@@ -89,7 +87,7 @@ public class Section {
     return Optional.ofNullable(room);
   }
 
-  public Map<Integer, String> getInstructors() {
+  public Set<Instructor> getInstructors() {
     return instructors;
   }
 

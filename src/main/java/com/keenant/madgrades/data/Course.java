@@ -21,6 +21,7 @@ public class Course {
     private Level level;
 
     private String description;
+    private String requirement;
 
     public Course(int courseNumber) {
         this.courseNumber = courseNumber;
@@ -39,6 +40,27 @@ public class Course {
         this.ge = attributes.getGe();
         this.level = attributes.getLevel();
         this.ethnic = attributes.getEthnic();
+        this.requirement = attributes.getRequirement();
+    }
+
+    public void setRequirement(String requirement) {
+        this.requirement = requirement;
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
+    }
+
+    public void setGe(GE ge) {
+        this.ge = ge;
+    }
+
+    public void setEthnic(Ethnic ethnic) {
+        this.ethnic = ethnic;
+    }
+
+    public String getRequirement() {
+        return requirement;
     }
 
     public void setName(String name) {

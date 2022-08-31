@@ -3,14 +3,8 @@ package com.keenant.madgrades.data;
 import com.keenant.madgrades.utils.GradeType;
 
 import java.lang.ref.Reference;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -21,8 +15,8 @@ import java.util.stream.Collectors;
  */
 public class CourseOffering {
     private final int termCode;
-    private final int courseNumber;
-    private final Map<String, Subject> subjects;
+    private final transient int courseNumber;
+    private final Set<Subject> subjects;
     private final Set<Section> sections;
     private final transient AtomicReference<String> name;
     private final transient Map<Integer, Map<GradeType, Integer>> grades = new HashMap<>();
@@ -31,9 +25,9 @@ public class CourseOffering {
     public CourseOffering(int termCode, int courseNumber, Subject subject, String name, Set<Section> sections) {
         this.termCode = termCode;
         this.courseNumber = courseNumber;
-        this.subjects = new HashMap<String, Subject>() {{
-            put(subject.getCode(), subject);
-        }};
+        this.subjects = new HashSet<>();
+        this.subjects.add(subject);
+
         this.sections = sections;
         this.name = new AtomicReference<>(name);
     }
@@ -42,7 +36,7 @@ public class CourseOffering {
         if (termCode != other.termCode || courseNumber != other.courseNumber)
             throw new IllegalArgumentException();
 
-        subjects.putAll(other.subjects);
+        subjects.addAll(other.subjects);
         sections.addAll(other.sections);
         if (name.get() == null)
             name.set(other.getName().orElse(null));
@@ -59,7 +53,7 @@ public class CourseOffering {
      * @return the unique id
      */
     public UUID generateUuid() {
-        String subjectCodesStr = subjects.keySet().stream()
+        String subjectCodesStr = subjects.stream().map(Subject::getCode)
                 .sorted()
                 .collect(Collectors.joining());
         String uniqueStr = termCode + "" + courseNumber + subjectCodesStr;
@@ -75,11 +69,11 @@ public class CourseOffering {
     }
 
     public Set<String> getSubjectCodes() {
-        return subjects.keySet();
+        return subjects.stream().map(Subject::getCode).collect(Collectors.toSet());
     }
 
     public Collection<Subject> getSubjects() {
-        return subjects.values();
+        return subjects;
     }
 
     public Set<Section> getSections() {
@@ -113,7 +107,7 @@ public class CourseOffering {
     }
 
     public void addSubject(Subject subject) {
-        subjects.put(subject.getCode(), subject);
+        subjects.add(subject);
     }
 
     private void addGrades(int sectionNumber, Map<GradeType, Integer> distribution) {

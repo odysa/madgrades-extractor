@@ -81,7 +81,7 @@ public class Parse {
 
     if (cols.get(11).length() > 0) {
       instructorName = cols.get(11);
-      instructorName = instructorName.replace("P / ", "");
+      instructorName = instructorName.replace("P / ", "").replace("S /", "");
 
       // some names are "LAST, FIRST", we reorder them to "FIRST LAST"
       if (instructorName.contains(",")) {
