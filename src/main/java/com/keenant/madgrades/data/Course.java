@@ -23,7 +23,6 @@ public class Course {
   private Level level;
 
   public Course(int courseNumber) {
-    this.uuid = generateUuid();
     this.courseNumber = courseNumber;
   }
   public Course(int courseNumber, Set<Breadth> breadths, Set<GE> ges, Level level) {
@@ -41,8 +40,12 @@ public class Course {
             .flatMap(o -> o.getSubjects().stream())
             .collect(Collectors.toSet());
   }
+
   public UUID getUuid() {
-    return uuid;
+    if (this.uuid == null) {
+      this.uuid = this.generateUuid();
+    }
+    return this.uuid;
   }
 
   public void setBreadths(Set<Breadth> breadths) {

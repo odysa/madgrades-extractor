@@ -50,10 +50,10 @@ public class TermReports {
     for (var course:courses){
 
       if (!this.setFullName(course)){
-        System.out.println("course does not have full name");
+//        System.out.println("course does not have full name");
       }
 
-        jsons.put(course.getUuid(), course.toString());
+      jsons.put(course.getUuid(), course.toString());
     }
   return jsons;
   }

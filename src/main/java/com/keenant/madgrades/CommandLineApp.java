@@ -3,7 +3,6 @@ package com.keenant.madgrades;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.keenant.madgrades.data.Subject;
@@ -16,8 +15,6 @@ import com.keenant.madgrades.utils.PdfRow;
 import com.keenant.madgrades.utils.Scrapers;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -151,16 +148,15 @@ public class CommandLineApp {
       List<String> fields = Arrays.asList(line.split(",(?=([^\"]|\"[^\"]*\")*$)"));
 
       if (courseNumberIndex < 0) {
-        courseNumberIndex = fields.indexOf("Course Number");
-        subjectAbbrevIndex = fields.indexOf("Subject Code");
-        courseNameIndex = fields.indexOf("Name");
+        courseNumberIndex = fields.indexOf("\"Course Number\"");
+        subjectAbbrevIndex = fields.indexOf("\"Subject Code\"");
+        courseNameIndex = fields.indexOf("\"Name\"");
         continue;
       }
 
       String subjectAbbrev = fields.get(subjectAbbrevIndex).replaceAll("\"", "");
-      int courseNumber = Integer.parseInt(fields.get(courseNumberIndex));
+      int courseNumber = Integer.parseInt(fields.get(courseNumberIndex).replaceAll("\"", ""));
       String name = fields.get(courseNameIndex).replaceAll("\"", "");
-
       reports.setFullCourseName(subjectAbbrev, courseNumber, name);
     }
   }
