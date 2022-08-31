@@ -1,6 +1,7 @@
 package com.keenant.madgrades.tools;
 
 import com.keenant.madgrades.utils.Exporter;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -11,105 +12,104 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class Exporters {
-  /**
-   * Exports to CSV files per table.
-   */
-  public static final Exporter<Boolean> CSV = (dir, tables, writeHeaders) -> {
-    for (String table : tables.keySet()) {
-      File outFile = new File(dir, table + ".csv");
-      PrintWriter writer = new PrintWriter(outFile);
+    /**
+     * Exports to CSV files per table.
+     */
+    public static final Exporter<Boolean> CSV = (dir, tables, writeHeaders) -> {
+        for (String table : tables.keySet()) {
+            File outFile = new File(dir, table + ".csv");
+            PrintWriter writer = new PrintWriter(outFile);
 
-      Collection<Map<String, Object>> entries = tables.get(table);
-      List<String> fields = entries.stream()
-          .flatMap(list -> list.keySet().stream())
-          .distinct()
-          .collect(Collectors.toList());
+            Collection<Map<String, Object>> entries = tables.get(table);
+            List<String> fields = entries.stream()
+                    .flatMap(list -> list.keySet().stream())
+                    .distinct()
+                    .collect(Collectors.toList());
 
-      if (writeHeaders) {
-        writer.println(fields.stream().collect(Collectors.joining(",")));
-      }
+            if (writeHeaders) {
+                writer.println(fields.stream().collect(Collectors.joining(",")));
+            }
 
-      for (Map<String, Object> entry : entries) {
-        for (String field : fields) {
-          Object value = entry.get(field);
+            for (Map<String, Object> entry : entries) {
+                for (String field : fields) {
+                    Object value = entry.get(field);
 
-          if (value instanceof String) {
-            writer.print('"' + value.toString().replace("\"", "\"\"") + '"');
-          }
-          else {
-            writer.print(value);
-          }
+                    if (value instanceof String) {
+                        writer.print('"' + value.toString().replace("\"", "\"\"") + '"');
+                    } else {
+                        writer.print(value);
+                    }
 
-          if (fields.indexOf(field) < fields.size() - 1)
-            writer.print(",");
+                    if (fields.indexOf(field) < fields.size() - 1)
+                        writer.print(",");
+                }
+
+                writer.println();
+            }
+
+            writer.close();
         }
+    };
 
-        writer.println();
-      }
+    /**
+     * Exports to MySQL insert statements .sql files per table.
+     */
+    public static final Exporter<Boolean> MYSQL = (dir, tables, writeTruncateStmt) -> {
+        for (String table : tables.keySet()) {
+            File outFile = new File(dir, table + ".sql");
+            PrintWriter writer = new PrintWriter(outFile);
 
-      writer.close();
-    }
-  };
+            Collection<Map<String, Object>> entries = tables.get(table);
+            List<String> fields = entries.stream()
+                    .flatMap(list -> list.keySet().stream())
+                    .distinct()
+                    .collect(Collectors.toList());
 
-  /**
-   * Exports to MySQL insert statements .sql files per table.
-   */
-  public static final Exporter<Boolean> MYSQL = (dir, tables, writeTruncateStmt) -> {
-    for (String table : tables.keySet()) {
-      File outFile = new File(dir, table + ".sql");
-      PrintWriter writer = new PrintWriter(outFile);
+            if (writeTruncateStmt) {
+                writer.println("TRUNCATE " + table + ";");
+            }
 
-      Collection<Map<String, Object>> entries = tables.get(table);
-      List<String> fields = entries.stream()
-          .flatMap(list -> list.keySet().stream())
-          .distinct()
-          .collect(Collectors.toList());
+            writer.print("INSERT INTO " + table + " ");
+            writer.print("(");
+            writer.print(fields.stream().collect(Collectors.joining(",")));
+            writer.print(") ");
+            writer.print("VALUES ");
 
-      if (writeTruncateStmt) {
-        writer.println("TRUNCATE " + table + ";");
-      }
+            int i = 0;
+            for (Map<String, Object> entry : entries) {
+                writer.print("(");
+                for (String field : fields) {
+                    Object value = entry.get(field);
 
-      writer.print("INSERT INTO " + table + " ");
-      writer.print("(");
-      writer.print(fields.stream().collect(Collectors.joining(",")));
-      writer.print(") ");
-      writer.print("VALUES ");
+                    if (value instanceof String) {
+                        writer.print("'" + value.toString().replace("'", "''") + "'");
+                    } else {
+                        writer.print(value);
+                    }
 
-      int i = 0;
-      for (Map<String, Object> entry : entries) {
-        writer.print("(");
-        for (String field : fields) {
-          Object value = entry.get(field);
+                    if (fields.indexOf(field) < fields.size() - 1)
+                        writer.print(",");
+                }
 
-          if (value instanceof String) {
-            writer.print("'" + value.toString().replace("'", "''") + "'");
-          }
-          else {
-            writer.print(value);
-          }
+                writer.print(")");
+                if (i < entries.size() - 1)
+                    writer.print(",");
+                writer.println();
+                i++;
+            }
 
-          if (fields.indexOf(field) < fields.size() - 1)
-            writer.print(",");
+            writer.print(";");
+            writer.close();
         }
+    };
 
-        writer.print(")");
-        if (i < entries.size() - 1)
-          writer.print(",");
-        writer.println();
-        i++;
-      }
-
-      writer.print(";");
-      writer.close();
+    public static void exportJson(File dir, Map<UUID, String> jsons) throws FileNotFoundException {
+        File outFile = new File(dir, "courses.jsonl");
+        PrintWriter writer = new PrintWriter(outFile);
+        for (var json : jsons.values()) {
+            writer.write(json);
+            writer.println();
+        }
+        writer.close();
     }
-  };
-  public static void exportJson(File dir ,Map<UUID,String> jsons) throws FileNotFoundException {
-    File outFile = new File(dir, "courses.json");
-    PrintWriter writer = new PrintWriter(outFile);
-    for (var json :jsons.values()){
-      writer.write(json);
-      writer.println();
-    }
-    writer.close();
-  }
 }

@@ -5,9 +5,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
-import com.keenant.madgrades.data.Subject;
-import com.keenant.madgrades.data.Term;
-import com.keenant.madgrades.data.TermReports;
+import com.keenant.madgrades.data.*;
 import com.keenant.madgrades.tools.Exporters;
 import com.keenant.madgrades.tools.Parse;
 import com.keenant.madgrades.tools.Pdfs;
@@ -24,168 +22,213 @@ import java.util.stream.Stream;
 
 public class CommandLineApp {
 
-  public static class Args {
+    public static class Args {
 
-    @Parameter(names = {"-r",
-        "-reports"}, description = "Path to the local registrar-reports repository", required = true)
-    private String registrarReports;
+        @Parameter(names = {"-r",
+                "-reports"}, description = "Path to the local registrar-reports repository", required = true)
+        private String registrarReports;
 
-    @Parameter(names = {"-t",
-        "-terms"}, description = "Comma-separated list of term codes to run (ex. -t 1082,1072)")
-    private String terms;
+        @Parameter(names = {"-t",
+                "-terms"}, description = "Comma-separated list of term codes to run (ex. -t 1082,1072)")
+        private String terms;
 
-    @Parameter(names = {"-e",
-        "-exclude"}, description = "Comma-separated list of term codes to exclude (ex. -e 1082)")
-    private String excludeTerms;
+        @Parameter(names = {"-e",
+                "-exclude"}, description = "Comma-separated list of term codes to exclude (ex. -e 1082)")
+        private String excludeTerms;
 
-    @Parameter(names = {"-out",
-        "-o"}, description = "Output directory path for exported files (ex. -o ../data)")
-    private String outputPath = "./";
+        @Parameter(names = {"-out",
+                "-o"}, description = "Output directory path for exported files (ex. -o ../data)")
+        private String outputPath = "./";
 
-    @Parameter(names = {"-l", "-list"}, description = "Output list of terms to extract")
-    private boolean listTerms = false;
+        @Parameter(names = {"-l", "-list"}, description = "Output list of terms to extract")
+        private boolean listTerms = false;
 
-    @Parameter(names = {"-f", "-format"}, description = "The output format")
-    private OutputFormat format = OutputFormat.CSV;
-  }
-
-  public static void main(String[] argv) throws Exception {
-    Args args = new Args();
-
-    try {
-      JCommander.newBuilder()
-          .addObject(args)
-          .build()
-          .parse(argv);
-    } catch (ParameterException e) {
-      System.err.println(e.getMessage());
-      e.usage();
-      return;
+        @Parameter(names = {"-f", "-format"}, description = "The output format")
+        private OutputFormat format = OutputFormat.CSV;
     }
 
-    // require output directory to work
-    File outDirectory = new File(args.outputPath);
-    if (!outDirectory.exists()) {
-      if (!outDirectory.mkdir()) {
-        System.err.println("Unable to open output directory.");
-        return;
-      }
-    }
+    public static void main(String[] argv) throws Exception {
+        Args args = new Args();
 
-    System.out.println("Scraping for subjects...");
-    Set<Subject> subjects = Scrapers.scrapeSubjects();
-    Map<Integer, String> dirReportPaths = Scrapers.scrapeDirReports(args.registrarReports);
-    Map<Integer, String> gradeReportPaths = Scrapers.scrapeGradeReports(args.registrarReports);
-
-    List<Integer> termCodes = Sets.union(dirReportPaths.keySet(), gradeReportPaths.keySet()).stream()
-        .sorted()
-        .collect(Collectors.toList());
-
-    if (args.terms != null) {
-      List<Integer> includeTerms = Arrays.stream(args.terms.split(","))
-          .map(Integer::parseInt)
-          .collect(Collectors.toList());
-      termCodes.removeIf(i -> !includeTerms.contains(i));
-    }
-
-    if (args.excludeTerms != null) {
-      List<Integer> excludeTerms = Arrays.stream(args.excludeTerms.split(","))
-          .map(Integer::parseInt)
-          .collect(Collectors.toList());
-      termCodes.removeIf(excludeTerms::contains);
-    }
-
-    // just print out the terms
-    if (args.listTerms) {
-      System.out.println("Terms: " + termCodes);
-      return;
-    }
-
-    // terms are required
-    if (termCodes.isEmpty()) {
-      System.err.println("No terms to extract.");
-      return;
-    }
-
-    TermReports reports = new TermReports();
-
-    readAefisCourses(reports, CommandLineApp.class.getResourceAsStream("/aefis_courses.csv"));
-
-    for (int termCode : termCodes) {
-      String dirPath = dirReportPaths.get(termCode);
-      String gradePath = gradeReportPaths.get(termCode);
-
-      if (dirPath == null || gradePath == null) {
-        if (termCode % 10 == 6) { //summer terms end with 6
-          System.out.println("Summer Terms (" + termCode + ") do not have grade reports");
-        } else {
-          System.out.println("Skipping: " + termCode + ", dirPath=" + dirPath + ", gradePath=" + gradePath);
+        try {
+            JCommander.newBuilder()
+                    .addObject(args)
+                    .build()
+                    .parse(argv);
+        } catch (ParameterException e) {
+            System.err.println(e.getMessage());
+            e.usage();
+            return;
         }
-        continue;
-      }
 
-      extract(reports, termCode, dirPath, gradePath);
-    }
+        // require output directory to work
+        File outDirectory = new File(args.outputPath);
+        if (!outDirectory.exists()) {
+            if (!outDirectory.mkdir()) {
+                System.err.println("Unable to open output directory.");
+                return;
+            }
+        }
+
+        System.out.println("Scraping for subjects...");
+        Set<Subject> subjects = Scrapers.scrapeSubjects();
+        Map<Integer, String> dirReportPaths = Scrapers.scrapeDirReports(args.registrarReports);
+        Map<Integer, String> gradeReportPaths = Scrapers.scrapeGradeReports(args.registrarReports);
+
+        List<Integer> termCodes = Sets.union(dirReportPaths.keySet(), gradeReportPaths.keySet()).stream()
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (args.terms != null) {
+            List<Integer> includeTerms = Arrays.stream(args.terms.split(","))
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+            termCodes.removeIf(i -> !includeTerms.contains(i));
+        }
+
+        if (args.excludeTerms != null) {
+            List<Integer> excludeTerms = Arrays.stream(args.excludeTerms.split(","))
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+            termCodes.removeIf(excludeTerms::contains);
+        }
+
+        // just print out the terms
+        if (args.listTerms) {
+            System.out.println("Terms: " + termCodes);
+            return;
+        }
+
+        // terms are required
+        if (termCodes.isEmpty()) {
+            System.err.println("No terms to extract.");
+            return;
+        }
+
+        TermReports reports = new TermReports();
+
+        readAefisCourses(reports, CommandLineApp.class.getResourceAsStream("/aefis_courses.csv"));
+        readCourseInfo(reports, CommandLineApp.class.getResourceAsStream("/courses_info.csv"));
+
+        for (int termCode : termCodes) {
+            String dirPath = dirReportPaths.get(termCode);
+            String gradePath = gradeReportPaths.get(termCode);
+
+            if (dirPath == null || gradePath == null) {
+                if (termCode % 10 == 6) { //summer terms end with 6
+                    System.out.println("Summer Terms (" + termCode + ") do not have grade reports");
+                } else {
+                    System.out.println("Skipping: " + termCode + ", dirPath=" + dirPath + ", gradePath=" + gradePath);
+                }
+                continue;
+            }
+
+            extract(reports, termCode, dirPath, gradePath);
+        }
 
 //    Multimap<String, Map<String, Object>> tables = reports.generateTables(subjects);
 
-    System.out.println("Exporting to '" + outDirectory.getAbsolutePath() + "'");
+        System.out.println("Exporting to '" + outDirectory.getAbsolutePath() + "'");
 //    args.format.getExporter().export(outDirectory, tables, true);
-    var jsons = reports.generateJsons(subjects);
-    Exporters.exportJson(outDirectory,jsons);
-    System.out.println("Done.");
-  }
-
-  private static void readAefisCourses(TermReports reports, InputStream stream) throws IOException {
-    InputStreamReader reader = new InputStreamReader(stream);
-    List<String> lines = CharStreams.readLines(reader);
-
-    int courseNumberIndex = -1;
-    int subjectAbbrevIndex = -1;
-    int courseNameIndex = -1;
-
-    for (String line : lines) {
-      List<String> fields = Arrays.asList(line.split(",(?=([^\"]|\"[^\"]*\")*$)"));
-
-      if (courseNumberIndex < 0) {
-        courseNumberIndex = fields.indexOf("\"Course Number\"");
-        subjectAbbrevIndex = fields.indexOf("\"Subject Code\"");
-        courseNameIndex = fields.indexOf("\"Name\"");
-        continue;
-      }
-
-      String subjectAbbrev = fields.get(subjectAbbrevIndex).replaceAll("\"", "");
-      int courseNumber = Integer.parseInt(fields.get(courseNumberIndex).replaceAll("\"", ""));
-      String name = fields.get(courseNameIndex).replaceAll("\"", "");
-      reports.setFullCourseName(subjectAbbrev, courseNumber, name);
-    }
-  }
-
-  private static void extract(TermReports reports, int termCode, String dirPath, String gradePath)
-      throws Exception {
-    System.out.println("Extracting term " + termCode);
-
-    // get the term
-    Term term = reports.getOrCreateTerm(termCode);
-
-    List<Float> dirColumns = Constants.DIR_COLUMNS;
-    if (termCode == 1124) {
-      dirColumns = Constants.DIR_COLUMNS_1124;
-    } else if (termCode >= 1204) {
-      dirColumns = Constants.DIR_COLUMNS_SINCE_1204;
+        var jsons = reports.generateJsons(subjects);
+        Exporters.exportJson(outDirectory, jsons);
+        System.out.println("Done.");
     }
 
-    // dir report
-    InputStream dir = new FileInputStream(dirPath);
-    try (Stream<PdfRow> dirRows = Pdfs.extractRows(dir, dirColumns, "SUBJECT", true)) {
-      term.addSections(dirRows.flatMap(row -> Parse.dirEntry(row, termCode)));
+    private static void readAefisCourses(TermReports reports, InputStream stream) throws IOException {
+        InputStreamReader reader = new InputStreamReader(stream);
+        List<String> lines = CharStreams.readLines(reader);
+
+        int courseNumberIndex = -1;
+        int subjectAbbrevIndex = -1;
+        int courseNameIndex = -1;
+        int courseDescIndex = -1;
+        for (String line : lines) {
+            List<String> fields = Arrays.asList(line.split(",(?=([^\"]|\"[^\"]*\")*$)"));
+
+            if (courseNumberIndex < 0) {
+                courseNumberIndex = fields.indexOf("\"Course Number\"");
+                subjectAbbrevIndex = fields.indexOf("\"Subject Code\"");
+                courseNameIndex = fields.indexOf("\"Name\"");
+                courseDescIndex = fields.indexOf("\"Description\"");
+                continue;
+            }
+
+            String subjectAbbrev = fields.get(subjectAbbrevIndex).replaceAll("\"", "");
+            int courseNumber = Integer.parseInt(fields.get(courseNumberIndex).replaceAll("\"", ""));
+            String name = fields.get(courseNameIndex).replaceAll("\"", "");
+            String desc = fields.get(courseDescIndex).replaceAll("\"", "");
+            reports.setFullCourseName(subjectAbbrev, courseNumber, name);
+            reports.setCourseDescriptions(subjectAbbrev, courseNumber, desc);
+        }
     }
 
-    // grade report
-    InputStream grades = new FileInputStream(gradePath);
-    try (Stream<PdfRow> gradeRows = Pdfs
-        .extractRows(grades, Constants.GRADES_COLUMNS, "TERM", false)) {
-      term.addGrades(gradeRows.flatMap(Parse::gradeEntry));
+    private static void readCourseInfo(TermReports reports, InputStream stream) throws IOException {
+        InputStreamReader reader = new InputStreamReader(stream);
+        List<String> lines = CharStreams.readLines(reader);
+
+        int courseNumberIndex = -1;
+        int courseNameIndex = -1;
+        int courseGEIndex = -1;
+        int courseBreadthIndex = -1;
+        int courseEthnicIndex = -1;
+        int courseLevelIndex = -1;
+        int courseRequirementIndex = -1;
+
+        for (String line : lines) {
+
+            List<String> fields = Arrays.asList(line.translateEscapes().split(",(?=([^\"]|\"[^\"]*\")*$)"));
+
+            if (courseNumberIndex < 0) {
+                courseNumberIndex = fields.indexOf("number");
+                courseNameIndex = fields.indexOf("fullName");
+                courseBreadthIndex = fields.indexOf("breadths");
+                courseGEIndex = fields.indexOf("generalEd");
+                courseEthnicIndex = fields.indexOf("ethnic");
+                courseLevelIndex = fields.indexOf("level");
+                courseRequirementIndex = fields.indexOf("requirement");
+                continue;
+            }
+
+            int courseNumber = Integer.parseInt(fields.get(courseNumberIndex).replaceAll("\"", ""));
+            var name = fields.get(courseNameIndex).replaceAll("\"", "");
+            var ge = GE.fromJsonStr(fields.get(courseGEIndex).replaceAll("\"", ""));
+            var breadthLists = Breadth.listFromJsonStr(fields.get(courseBreadthIndex).replaceAll("\"", ""));
+
+            var level = Level.fromJsonStr(fields.get(courseLevelIndex).replaceAll("\"", ""));
+            var ethnic = Ethnic.fromJsonStr(fields.get(courseEthnicIndex).replaceAll("\"", ""));
+            var requirement = fields.get(courseRequirementIndex).replace("\"", "");
+
+            var attributes = new FullAttributes().setBreadthList(breadthLists).setLevel(level).setEthnic(ethnic).setGe(ge);
+            reports.setCourseAttributes(name, courseNumber, attributes);
+        }
     }
-  }
+
+    private static void extract(TermReports reports, int termCode, String dirPath, String gradePath)
+            throws Exception {
+        System.out.println("Extracting term " + termCode);
+
+        // get the term
+        Term term = reports.getOrCreateTerm(termCode);
+
+        List<Float> dirColumns = Constants.DIR_COLUMNS;
+        if (termCode == 1124) {
+            dirColumns = Constants.DIR_COLUMNS_1124;
+        } else if (termCode >= 1204) {
+            dirColumns = Constants.DIR_COLUMNS_SINCE_1204;
+        }
+
+        // dir report
+        InputStream dir = new FileInputStream(dirPath);
+        try (Stream<PdfRow> dirRows = Pdfs.extractRows(dir, dirColumns, "SUBJECT", true)) {
+            term.addSections(dirRows.flatMap(row -> Parse.dirEntry(row, termCode)));
+        }
+
+        // grade report
+        InputStream grades = new FileInputStream(gradePath);
+        try (Stream<PdfRow> gradeRows = Pdfs
+                .extractRows(grades, Constants.GRADES_COLUMNS, "TERM", false)) {
+            term.addGrades(gradeRows.flatMap(Parse::gradeEntry));
+        }
+    }
 }

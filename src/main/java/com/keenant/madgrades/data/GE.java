@@ -7,7 +7,11 @@ public class GE extends Attribute {
         super(code, name);
     }
 
-    public static GE fromJsonStr(String jsonStr){
-       return (GE) Attribute.fromJsonStr(jsonStr);
+    public static GE fromJsonStr(String jsonStr) {
+        var attr = Attribute.fromJsonStr(jsonStr);
+        if (attr == null) {
+            return null;
+        }
+        return new GE(attr.code, attr.name);
     }
 }
