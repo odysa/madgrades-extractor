@@ -90,4 +90,17 @@ public class DirSection {
                 getInstructorsSet()
         );
     }
+
+    @Override
+    public String toString() {
+        return "DirSection{" +
+                "subjectCode='" + subjectCode + '\'' +
+                ", courseNumber=" + courseNumber +
+                ", sectionType=" + sectionType +
+                ", sectionNumber=" + sectionNumber +
+                ", schedule=" + schedule +
+                ", room=" + room +
+                ", instructors=" + instructors +
+                '}';
+    }
 }

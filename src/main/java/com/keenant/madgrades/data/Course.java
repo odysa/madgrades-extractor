@@ -9,19 +9,19 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Course {
-    private UUID uuid;
+    private transient UUID uuid;
 
     private final int courseNumber;
     private String name;
     private final Set<CourseOffering> teachings = new HashSet<>();
-    private List<Breadth> breadths;
-    private GE ge;
+    private transient List<Breadth> breadths;
+    private transient GE ge;
 
-    private Ethnic ethnic;
-    private Level level;
+    private transient Ethnic ethnic;
+    private transient Level level;
 
-    private String description;
-    private String requirement;
+    private transient String description;
+    private transient String requirement;
 
     public Course(int courseNumber) {
         this.courseNumber = courseNumber;
@@ -117,7 +117,15 @@ public class Course {
      * @return the unique id.
      */
     public UUID generateUuid() {
-        int hash = Objects.hash(this.name, this.courseNumber);
+        // get first course offering
+        CourseOffering firstOffering = teachings.stream()
+                .min(Comparator.comparingInt(CourseOffering::getTermCode))
+                .orElse(null);
+
+        if (firstOffering == null)
+            throw new IllegalStateException();
+
+        int hash = Objects.hash(courseNumber, firstOffering.generateUuid());
         return UUID.nameUUIDFromBytes((hash + "").getBytes());
     }
 

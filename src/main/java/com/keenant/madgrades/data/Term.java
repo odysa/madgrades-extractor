@@ -53,6 +53,7 @@ public class Term {
     for (String subjectCode : subjectCodes) {
       String name = subjectNames.get(subjectCode);
       String abbrev = subjectAbbrevs.get(subjectCode);
+
       subjects.put(subjectCode, new Subject(name, abbrev, subjectCode));
     }
 
@@ -207,7 +208,6 @@ public class Term {
 
         for (SectionGradesEntry entry : backlog) {
           courseNumber = entry.getCourseNumber();
-
           grades.put(entry.getCourseNumber(), new SectionGrades(
               subjectCode.get(),
               courseNumber,

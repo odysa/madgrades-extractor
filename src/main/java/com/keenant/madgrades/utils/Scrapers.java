@@ -24,9 +24,10 @@ public class Scrapers {
         for (Element tr : tbody.select("tr")) {
             Elements children = tr.children();
 
-            String name = children.get(0).text();
+            String name = children.get(2).text();
             String abbreviation = children.get(1).text();
-            String code = children.get(2).text();
+            String code = children.get(0).text();
+
             if(code.matches("-?\\d+")){
                 subjects.add(new Subject(name, abbreviation, code));
             }else {

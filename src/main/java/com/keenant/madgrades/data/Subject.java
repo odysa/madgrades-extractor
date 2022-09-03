@@ -43,4 +43,13 @@ public class Subject {
   public int hashCode() {
     return Objects.hash(name, abbreviation, code);
   }
+
+  @Override
+  public String toString() {
+    return "Subject{" +
+            "name='" + name + '\'' +
+            ", abbreviation='" + abbreviation + '\'' +
+            ", code='" + code + '\'' +
+            '}';
+  }
 }

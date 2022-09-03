@@ -108,7 +108,7 @@ public class CommandLineApp {
         TermReports reports = new TermReports();
 
         readAefisCourses(reports, CommandLineApp.class.getResourceAsStream("/aefis_courses.csv"));
-        readCourseInfo(reports, CommandLineApp.class.getResourceAsStream("/courses_info.csv"));
+//        readCourseInfo(reports, CommandLineApp.class.getResourceAsStream("/courses_info.csv"));
 
         for (int termCode : termCodes) {
             String dirPath = dirReportPaths.get(termCode);
@@ -159,7 +159,7 @@ public class CommandLineApp {
             String name = fields.get(courseNameIndex).replaceAll("\"", "");
             String desc = fields.get(courseDescIndex).replaceAll("\"", "");
             reports.setFullCourseName(subjectAbbrev, courseNumber, name);
-            reports.setCourseDescriptions(subjectAbbrev, courseNumber, desc);
+//            reports.setCourseDescriptions(subjectAbbrev, courseNumber, desc);
         }
     }
 

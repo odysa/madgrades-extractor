@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class TermReports {
     private final Map<Integer, Term> terms = new HashMap<>();
@@ -78,12 +79,14 @@ public class TermReports {
 
         for (var course : courses) {
 
+            // this may happen if UW-Madison merge courses!
             if (!this.setFullName(course)) {
-                System.out.println(course.getCourseNumber() + " " + "does not have full name");
+                System.out.println(course.subjectCodes().toString() + course.getCourseNumber() + " " + "does not have full name");
+                continue;
             }
 
-            this.setAttributes(course);
-            this.setCourseDescriptions(course);
+//            this.setAttributes(course);
+//            this.setCourseDescriptions(course);
 
             jsons.put(course.getUuid(), course.toString());
         }
@@ -228,7 +231,6 @@ public class TermReports {
         }
 
         courses.removeAll(remove);
-
         return courses;
     }
 
